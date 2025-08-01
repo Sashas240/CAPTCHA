@@ -1,0 +1,268 @@
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebApp CAPTCHA</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+   
+    * {
+      font-family: 'JetBrains Mono', monospace;
+    }
+   
+    @keyframes glowPulse {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.5), 0 0 40px rgba(239, 68, 68, 0.3), 0 0 60px rgba(239, 68, 68, 0.1);
+      }
+      50% {
+        box-shadow: 0 0 30px rgba(239, 68, 68, 0.8), 0 0 60px rgba(239, 68, 68, 0.5), 0 0 90px rgba(239, 68, 68, 0.3);
+      }
+    }
+   
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+   
+    @keyframes checkmarkGlow {
+      0% {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.3) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+   
+    @keyframes redGlow {
+      0%, 100% {
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.6), inset 0 0 15px rgba(239, 68, 68, 0.1);
+      }
+      50% {
+        box-shadow: 0 0 25px rgba(239, 68, 68, 0.9), inset 0 0 25px rgba(239, 68, 68, 0.2);
+      }
+    }
+   
+    @keyframes scanLine {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+   
+    .bg-main {
+      background: #000000;
+    }
+   
+    .glass-panel {
+      background: rgba(15, 15, 15, 0.95);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      backdrop-filter: blur(10px);
+    }
+   
+    .captcha-box {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+   
+    .captcha-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #ef4444, transparent);
+      animation: scanLine 2s linear infinite;
+    }
+   
+    .captcha-box.hovered {
+      transform: scale(1.05);
+      border-color: #ef4444;
+      animation: redGlow 1.5s ease-in-out infinite;
+    }
+   
+    .captcha-box.checked {
+      transform: scale(1);
+      background: linear-gradient(135deg, #1f1f1f, #2a2a2a) !important;
+      border-color: #ef4444;
+      animation: glowPulse 2s ease-in-out infinite;
+    }
+   
+    .checkmark {
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+   
+    .checkmark.show {
+      animation: checkmarkGlow 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+   
+    .btn-glow {
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+      animation: glowPulse 2s ease-in-out infinite;
+    }
+   
+    .text-glow {
+      text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+    }
+   
+    .animate-slide-up {
+      animation: slideUp 0.6s ease-out;
+    }
+   
+    .animate-slide-up-delay {
+      animation: slideUp 0.6s ease-out 0.2s both;
+    }
+   
+    .animate-slide-up-delay-2 {
+      animation: slideUp 0.6s ease-out 0.4s both;
+    }
+   
+    .matrix-bg::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+        radial-gradient(circle at 25% 25%, rgba(239, 68, 68, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(239, 68, 68, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+    }
+   
+    .success-animation {
+      animation: slideUp 0.8s ease-out, glowPulse 2s ease-in-out infinite 0.8s;
+    }
+  </style>
+</head>
+<body class="bg-main min-h-screen flex items-center justify-center p-4 relative matrix-bg">
+  <div class="max-w-sm w-full glass-panel rounded-xl shadow-2xl p-8 relative">
+    <div id="captcha-container" class="space-y-8">
+      <div class="text-center animate-slide-up">
+        <h1 id="heading" class="text-2xl font-bold text-white mb-2 text-glow">VERIFICATION</h1>
+        <div class="w-16 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent mx-auto"></div>
+      </div>
+      <div class="flex items-center justify-between animate-slide-up-delay">
+        <div class="text-white">
+          <p class="font-medium">I'm not a robot</p>
+          <p class="text-gray-400 text-sm">Click to verify</p>
+        </div>
+        <div id="captcha-box" class="w-16 h-16 bg-gradient-to-br from-gray-900 to-black rounded-lg border-2 border-gray-700 flex items-center justify-center cursor-pointer captcha-box">
+          <div id="checkmark" class="checkmark text-2xl text-red-500 font-bold opacity-0">✓</div>
+        </div>
+      </div>
+    </div>
+    <button id="continue-btn" disabled class="mt-8 w-full px-6 py-3 bg-gray-900 text-gray-500 rounded-lg font-medium cursor-not-allowed transition-all duration-300 border border-gray-800 animate-slide-up-delay-2">
+      CONTINUE
+    </button>
+    <div id="success-message" class="text-center text-white mt-8 hidden">
+      <div class="success-animation space-y-6">
+        <div class="relative">
+          <div class="w-20 h-20 mx-auto bg-gradient-to-br from-gray-900 to-black rounded-full border-2 border-red-500 flex items-center justify-center">
+            <div class="text-3xl text-red-500">✓</div>
+          </div>
+          <div class="absolute inset-0 rounded-full border-2 border-red-500 animate-ping opacity-20"></div>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-white mb-2 text-glow">ACCESS GRANTED</h2>
+          <div class="w-24 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent mx-auto mb-4"></div>
+          <p class="text-gray-400 text-sm font-medium">Session verified successfully</p>
+        </div>
+      </div>
+    </div>
+    <div class="absolute -inset-0.5 bg-gradient-to-r from-red-500/20 to-red-500/20 rounded-xl blur opacity-30 -z-10"></div>
+  </div>
+  <script>
+    const box = document.getElementById('captcha-box');
+    const btn = document.getElementById('continue-btn');
+    const container = document.getElementById('captcha-container');
+    const heading = document.getElementById('heading');
+    const success = document.getElementById('success-message');
+    let checked = false;
+
+    // Проверяем, открыт ли WebApp в Telegram
+    const isTelegramWebApp = window.Telegram?.WebApp?.initDataUnsafe?.user;
+
+    if (!isTelegramWebApp) {
+      // Если не в Telegram, показываем ошибку и отключаем взаимодействие
+      container.style.display = "none";
+      btn.style.display = "none";
+      heading.textContent = "ОШИБКА";
+      success.style.display = "block";
+      success.querySelector('h2').textContent = "ОТКРОЙТЕ В TELEGRAM";
+      success.querySelector('p').textContent = "Капча должна быть пройдена через Telegram WebApp.";
+      localStorage.removeItem("captcha_passed"); // Удаляем статус
+    } else {
+      // Проверяем статус капчи только в Telegram
+      if (localStorage.getItem("captcha_passed") === "true") {
+        container.style.display = "none";
+        btn.style.display = "none";
+        heading.textContent = "УЖЕ ПРОВЕРЕНО";
+        success.style.display = "block";
+      }
+    }
+
+    box.addEventListener('mouseenter', () => {
+      if (!checked && isTelegramWebApp) {
+        box.classList.add('hovered');
+      }
+    });
+    box.addEventListener('mouseleave', () => {
+      if (!checked && isTelegramWebApp) {
+        box.classList.remove('hovered');
+      }
+    });
+    box.addEventListener('click', () => {
+      if (!checked && isTelegramWebApp) {
+        checked = true;
+        box.classList.remove('hovered');
+        box.classList.add('checked');
+        const checkmark = box.querySelector('#checkmark');
+        checkmark.style.opacity = '1';
+        checkmark.classList.add('show');
+        btn.disabled = false;
+        btn.classList.remove('bg-gray-900', 'text-gray-500', 'cursor-not-allowed', 'border-gray-800');
+        btn.classList.add('bg-red-600', 'text-white', 'cursor-pointer', 'btn-glow', 'border-red-500');
+        if (window.Telegram?.WebApp?.HapticFeedback) {
+          Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+        }
+      }
+    });
+    btn.addEventListener('click', () => {
+      if (checked && isTelegramWebApp) {
+        if (window.Telegram?.WebApp) {
+          // Сохраняем статус только после успешной отправки данных
+          Telegram.WebApp.sendData("пройдено");
+          localStorage.setItem("captcha_passed", "true");
+          if (Telegram.WebApp.HapticFeedback) {
+            Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+          }
+          container.style.display = "none";
+          btn.style.display = "none";
+          heading.style.display = "none";
+          success.style.display = "block";
+        }
+      }
+    });
+    if (window.Telegram?.WebApp && isTelegramWebApp) {
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+    }
+  </script>
+</body>
+</html>
