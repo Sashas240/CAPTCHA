@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Проверка на бота</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      background: #ffffff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 {
+      font-size: 24px;
+    }
+    img {
+      width: 160px;
+      margin: 20px 0;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 18px;
+      border: none;
+      background-color: #30aabc;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    button:active {
+      background-color: #248e9d;
+    }
+  </style>
+</head>
+<body>
+  <h1>Пройдите проверку на бота</h1>
+  <img src="https://i.imgur.com/buEBlNf.png" alt="Уточка">
+  <p>Уточка внимательно на вас смотрит...</p>
+  <button onclick="Telegram.WebApp.close()">✅ Я человек</button>
+</body>
+</html>
