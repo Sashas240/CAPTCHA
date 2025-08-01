@@ -1,110 +1,48 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<title>Капча</title>
+<meta charset="UTF-8">
+<title>WebApp Капча</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 40px;
-    text-align: center;
-  }
-  #captcha-box {
-    width: 150px;
-    height: 150px;
-    margin: 20px auto;
-    border: 3px solid #ccc;
-    border-radius: 8px;
-    position: relative;
-    cursor: pointer;
-    user-select: none;
-  }
-  #captcha-box.hovered {
-    border-color: #4caf50;
-    background-color: #e8f5e9;
-  }
-  #checkmark {
-    display: none;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 90px;
-    color: #4caf50;
-    pointer-events: none;
-  }
-  #captcha-box.checked #checkmark {
-    display: block;
-  }
-  #continue-btn {
-    margin-top: 30px;
-    padding: 12px 30px;
-    font-size: 18px;
-    border: none;
-    border-radius: 6px;
-    background-color: #ccc;
-    color: #555;
-    cursor: not-allowed;
-  }
-  #continue-btn.enabled {
-    background-color: #4caf50;
-    color: white;
-    cursor: pointer;
-  }
+  body { font-family: Arial; text-align: center; margin-top: 50px; }
+  #captcha-box { width:150px; height:150px; margin: auto; border: 3px solid #ccc; border-radius:8px; position:relative; cursor:pointer; }
+  #captcha-box.hovered { border-color:#4caf50; background:#e8f5e9; }
+  #checkmark { display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:90px; color:#4caf50; }
+  #captcha-box.checked #checkmark { display:block; }
+  #continue-btn { margin-top:30px; padding:12px 30px; font-size:18px; border:none; border-radius:6px; background:#ccc; color:#555; cursor:not-allowed; }
+  #continue-btn.enabled { background:#4caf50; color:#fff; cursor:pointer; }
 </style>
 </head>
 <body>
 
 <h2>Пожалуйста, пройдите капчу</h2>
-<p>Наведи курсор на квадрат и нажми на него</p>
+<p>Наведи на квадрат и нажми на него</p>
 
-<div id="captcha-box" tabindex="0" aria-label="Капча квадрат"></div>
-<div id="checkmark">&#10004;</div>
-
+<div id="captcha-box">
+  <div id="checkmark">&#10004;</div>
+</div>
 <button id="continue-btn" disabled>Продолжить</button>
 
 <script>
   const box = document.getElementById('captcha-box');
-  const continueBtn = document.getElementById('continue-btn');
-  let hovered = false;
-  let checked = false;
+  const btn = document.getElementById('continue-btn');
+  let hovered = false, checked = false;
 
-  box.addEventListener('mouseenter', () => {
-    if (!checked) {
-      box.classList.add('hovered');
-      hovered = true;
-    }
-  });
-
-  box.addEventListener('mouseleave', () => {
-    if (!checked) {
-      box.classList.remove('hovered');
-      hovered = false;
-    }
-  });
-
+  box.addEventListener('mouseenter', () => { if (!checked) { hovered = true; box.classList.add('hovered'); }});
+  box.addEventListener('mouseleave', () => { if (!checked) { hovered = false; box.classList.remove('hovered'); }});
   box.addEventListener('click', () => {
     if (hovered && !checked) {
-      checked = true;
-      box.classList.remove('hovered');
-      box.classList.add('checked');
-      continueBtn.disabled = false;
-      continueBtn.classList.add('enabled');
+      checked = true; box.classList.remove('hovered'); box.classList.add('checked');
+      btn.disabled = false; btn.classList.add('enabled');
     }
   });
 
-  continueBtn.addEventListener('click', () => {
-    if (checked) {
-      alert('Капча пройдена! Спасибо!');
-      // Здесь можно добавить логику перехода или отображения кода для бота
-    }
-  });
-
-  // Для доступности — можно нажать Enter или Space, чтобы "кликнуть"
-  box.addEventListener('keydown', e => {
-    if ((e.key === 'Enter' || e.key === ' ') && hovered && !checked) {
-      e.preventDefault();
-      box.click();
+  btn.addEventListener('click', () => {
+    if (checked && window.Telegram?.WebApp) {
+      Telegram.WebApp.sendData("пройдено");
+    } else {
+      alert("Капча пройдена!");
     }
   });
 </script>
